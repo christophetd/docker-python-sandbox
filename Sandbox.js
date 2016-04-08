@@ -87,7 +87,7 @@ class Sandbox {
   _createContainer(cb) {
     let stages = [
       this._initializeContainer,
-      this._startContainer
+      this._startContainer,
       this._getContainerInfo, 
       this._registerContainer
     ].map( (stage) => stage.bind(this) );
@@ -125,11 +125,12 @@ class Sandbox {
     const launchOptions = _.cloneDeep(this.containerLaunchOptions)
     
     async.waterfall([
+      _.partial(fs.mkdirp, this.options.tmpDir),
       _.partial(fs.mkdir, tmpDir), 
       _.partial(fs.copy, containerSourceDir, tmpDir), 
       (next) => {
         launchOptions.HostConfig.Binds = [`${tmpDir}:/usr/src/app`]
-        this.docker.create_container(launchOptions, next)
+        this.docker.createContainer(launchOptions, next)
       }],
       
       (err, instance) => {
@@ -137,7 +138,7 @@ class Sandbox {
         const container = new Container(id, instance, tmpDir)
         cb(null, container)
       }
-    ])
+    )
   }
   
   /* 
@@ -158,11 +159,11 @@ class Sandbox {
   * Retrieves info of a container
   */
   _getContainerInfo(container, cb) {
-    container.instance.inspect( (err, data) {
+    container.instance.inspect( (err, data) => {
       if (err) {
         return container.instance.stop(_.partial(cb, err))
       }
-      container.ip = data.NetworkSettings.IPAddress;
+      container.setIp(data.NetworkSettings.IPAddress)
       cb(null, container)
     })
   }

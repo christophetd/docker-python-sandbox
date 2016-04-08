@@ -20,11 +20,11 @@ class Container {
       cb(null, "code result")
    }
    
-   get instance() {
+   instance() {
       return this.instance
    }
    
-   set ip(ip) {
+   setIp(ip) {
       if (ip) {
          this.ip = ip
       }

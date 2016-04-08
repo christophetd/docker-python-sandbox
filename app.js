@@ -3,7 +3,7 @@
 let Sandbox = require('./Sandbox')
 
 let sandbox = new Sandbox({
-  "poolSize": 10
+  "poolSize": 2
 })
 
 sandbox.createPool(() => {
