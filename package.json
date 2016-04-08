@@ -4,7 +4,7 @@
   "description": "A docker-based sandbox to execute code",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1", 
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node --harmony app.js"
   },
   "repository": {
@@ -20,6 +20,7 @@
   "dependencies": {
     "async": "^2.0.0-rc.3",
     "dockerode": "^2.2.10",
+    "fs-extra": "^0.26.7",
     "lodash": "^4.8.2",
     "node-uuid": "^1.4.7"
   }

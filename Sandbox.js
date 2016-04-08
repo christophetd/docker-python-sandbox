@@ -6,6 +6,8 @@ let Container   = require('./Container')
 let PoolManager = require('./PoolManager')
 let Job         = require('./Job')
 let uuid        = require('node-uuid').v4
+let fs          = require('fs-extra')
+var Docker      = require('dockerode');
 
 const defaultOptions = {
   "poolSize": 1,
@@ -28,7 +30,8 @@ class Sandbox {
       }
       
       this.manager = new PoolManager()
-      this.containerStartOptions = {
+      this.docker  = new Docker()
+      this.containerLaunchOptions = {
         "Image": this.options.imageName,
         "NetworkDisabled": !this.options.enableNetwork, 
         "AttachStdin": false,
@@ -84,6 +87,7 @@ class Sandbox {
   _createContainer(cb) {
     let stages = [
       this._initializeContainer,
+      this._startContainer
       this._getContainerInfo, 
       this._registerContainer
     ].map( (stage) => stage.bind(this) );
@@ -114,9 +118,39 @@ class Sandbox {
    * Initializes a new container
    */
   _initializeContainer (cb) {
-     cb(null, new Container("abc", null, "/tmp"))
-     //const id = uuid()
-     //const tmpDir = this.options.tmpDir + "/" + id;
+    //cb(null, new Container("abc", null, "/tmp"))
+    const id = uuid()
+    const tmpDir = `${this.options.tmpDir}/${id}`
+    const containerSourceDir = `${__dirname}/container`  //TODO
+    const launchOptions = _.cloneDeep(this.containerLaunchOptions)
+    
+    async.waterfall([
+      _.partial(fs.mkdir, tmpDir), 
+      _.partial(fs.copy, containerSourceDir, tmpDir), 
+      (next) => {
+        launchOptions.HostConfig.Binds = [`${tmpDir}:/usr/src/app`]
+        this.docker.create_container(launchOptions, next)
+      }],
+      
+      (err, instance) => {
+        if (err) return cb(err)
+        const container = new Container(id, instance, tmpDir)
+        cb(null, container)
+      }
+    ])
+  }
+  
+  /* 
+   * Private method
+   * Starts the specified container
+   */
+  _startContainer(container, cb) {
+    container.instance.start( (err, data) => {
+      if (err) {
+        return container.instance.stop(_.partial(cb, err))
+      }
+      cb(null, container)
+    })
   }
    
  /*
@@ -124,7 +158,13 @@ class Sandbox {
   * Retrieves info of a container
   */
   _getContainerInfo(container, cb) {
-    cb(null, container)
+    container.instance.inspect( (err, data) {
+      if (err) {
+        return container.instance.stop(_.partial(cb, err))
+      }
+      container.ip = data.NetworkSettings.IPAddress;
+      cb(null, container)
+    })
   }
     
   /* 

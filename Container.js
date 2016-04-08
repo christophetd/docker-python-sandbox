@@ -12,11 +12,22 @@ class Container {
       this.id = id
       this.instance = instance
       this.tmpDir = tmpDir
+      this.ip = ""
    }
    
    executeJob(job, cb) {
       console.log(`I (container ${this.id}), am executing job with code ${job.code}`)
       cb(null, "code result")
+   }
+   
+   get instance() {
+      return this.instance
+   }
+   
+   set ip(ip) {
+      if (ip) {
+         this.ip = ip
+      }
    }
 }
 
