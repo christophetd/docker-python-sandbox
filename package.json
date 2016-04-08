@@ -1,0 +1,26 @@
+{
+  "name": "docker-sandbox",
+  "version": "0.0.1",
+  "description": "A docker-based sandbox to execute code",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1", 
+    "start": "node --harmony app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christophetd/docker-python-sandbox-v2.git"
+  },
+  "author": "Christophe Tafani-Dereeper <christophe@tafani-dereeper.me>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/christophetd/docker-python-sandbox-v2/issues"
+  },
+  "homepage": "https://github.com/christophetd/docker-python-sandbox-v2#readme",
+  "dependencies": {
+    "async": "^2.0.0-rc.3",
+    "dockerode": "^2.2.10",
+    "lodash": "^4.8.2",
+    "node-uuid": "^1.4.7"
+  }
+}
