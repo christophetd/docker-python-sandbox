@@ -77,7 +77,14 @@ class Sandbox {
       throw new Error("Please provide the code to run as a string or an object {code: xxx}")
       
     const job = new Job(code)
-    this.manager.executeJob(job, cb)    
+    this.manager.executeJob(job, (err, result) => {
+      cb = _.partial(cb, err, result)
+      /*this._createContainer((err) => {
+        if (err) console.warn("Failed to create container after having run code", err)
+        cb()
+      })*/
+      cb()
+    })
   }
   
   /*
@@ -107,9 +114,14 @@ class Sandbox {
    *  Cleanups various resources such as temporary
    *  files and docker containers
    */
-  cleanup() {
-    this.options.poolSize
-    console.log("cleaning up");
+  cleanup(cb) {
+    cb = cb || _.noop
+    console.log("cleaning up")
+    this.manager.cleanup( err => {
+      if (err) console.error("Error while cleaning up ", err);
+      else console.info("Cleanup OK")
+      cb(err)
+    })
   }
   
   
@@ -118,7 +130,6 @@ class Sandbox {
    * Initializes a new container
    */
   _initializeContainer (cb) {
-    //cb(null, new Container("abc", null, "/tmp"))
     const id = uuid()
     const tmpDir = `${this.options.tmpDir}/${id}`
     const containerSourceDir = `${__dirname}/container`  //TODO
@@ -175,14 +186,6 @@ class Sandbox {
   _registerContainer(container, cb) {
      this.manager.registerContainer(container)
      cb(null, container)
-  }
-  
-  /* 
-   * Private method
-   * Cleanups the resources used by one container
-   */
-  _cleanupContainer(container, cb) {
-    
   }
 }
 

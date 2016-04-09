@@ -2,10 +2,11 @@
 
 let EventEmitter    = require('events').EventEmitter
 let _               = require('lodash')
+let async           = require('async')
 
 class PoolManager {
   constructor() {
-    this.jobs = []
+    this.waitingJobs = []
     this.availableContainers = []
     this.emitter = new EventEmitter()
   }
@@ -16,7 +17,7 @@ class PoolManager {
   executeJob (job, cb) {
     cb = cb || _.noop
     if (_.isEmpty(this.availableContainers)) {
-      this.emitter.once('newContainer', this._executeJob.bind(this, job, cb))
+      this.waitingJobs.push(job)
     }
     else {
       this._executeJob(job, cb); 
@@ -33,8 +34,22 @@ class PoolManager {
       throw new Error("no containers available, but there should have been!")
     
     const container = this.availableContainers.shift()
-    
-    container.executeJob(job, cb)
+    //container.executeJob(job, cb)
+    /*
+     * 1) Execute job
+     * 2) Cleanup container
+     * 3) Create a new container and add it to the pool
+     */
+    async.waterfall([
+      (next) => container.executeJob(job, next),
+      (result, next) => {
+        cb(null, result)
+        container.cleanup(() => next(null, result))//_.partial(next, null, result))
+      },
+      (result, next) => {
+        this._createContainer(next)
+      }
+    ])
   }
 
   /*
@@ -42,7 +57,25 @@ class PoolManager {
    */
   registerContainer(container) {
     this.availableContainers.push(container)
-    this.emitter.emit('newContainer')
+    if (!_.isEmpty(this.waitingJobs)) {
+      const {job, cb} = this.waitingJobs.shift()
+      return this._executeJob(job, cb)
+    }
+  }
+  
+  /*
+   * Cleanups the containers in the pool
+   */
+  cleanup(cb) {
+    cb = cb || _.noop
+    const cleanups = this.availableContainers.map(c => c.cleanup)
+    this.availableContainers.length = 0
+    return async.parallel(cleanups, cb)
+  }
+  
+  _createContainer(cb) {
+    console.log("TODO")
+    cb(null)
   }
 
 }
