@@ -5,7 +5,6 @@ let async       = require('async')
 let Container   = require('./Container')
 let PoolManager = require('./PoolManager')
 let Job         = require('./Job')
-let uuid        = require('node-uuid').v4
 let fs          = require('fs-extra')
 var Docker      = require('dockerode');
 
@@ -20,6 +19,14 @@ const defaultOptions = {
 const noop = () => {}
 const log = {}    
 
+/*
+ * To do: 
+ * 
+ * - Enable disabling network without bug
+ * - Security review
+ * - Remove old containers
+ */
+
 class Sandbox {
     
   constructor(options) {
@@ -29,9 +36,7 @@ class Sandbox {
         this.options.tmpDir = this.options.tmpDir.slice(0, -1)
       }
       
-      this.manager = new PoolManager()
-      this.docker  = new Docker()
-      this.containerLaunchOptions = {
+      this.options.containerLaunchOptions = {
         "Image": this.options.imageName,
         "NetworkDisabled": !this.options.enableNetwork, 
         "AttachStdin": false,
@@ -54,8 +59,11 @@ class Sandbox {
         }
       };
       
-      process.on('exit', this.cleanup.bind(this));
-      //process.on('SIGINT', this.cleanup.bind(this));
+      this.docker  = new Docker()
+      this.manager = new PoolManager(this.docker, options)
+      
+      process.on('exit', this.cleanup.bind(this, process.exit));
+      process.on('SIGINT', this.cleanup.bind(this, process.exit));
       
   }
   
@@ -63,8 +71,7 @@ class Sandbox {
    *  Initializes the pool and creates required containers
    */
   createPool (cb) {
-    const startups = _.range(this.options.poolSize).map(() => this._createContainer.bind(this));
-    return async.parallel(startups, cb);
+    this.manager.initialize(this.options.poolSize, cb)
   }
   
   /*
@@ -79,37 +86,11 @@ class Sandbox {
     const job = new Job(code)
     this.manager.executeJob(job, (err, result) => {
       cb = _.partial(cb, err, result)
-      /*this._createContainer((err) => {
-        if (err) console.warn("Failed to create container after having run code", err)
-        cb()
-      })*/
       cb()
     })
   }
   
-  /*
-   * Private method
-   * Initializes a new container and adds it to the pool
-   */
-  _createContainer(cb) {
-    let stages = [
-      this._initializeContainer,
-      this._startContainer,
-      this._getContainerInfo, 
-      this._registerContainer
-    ].map( (stage) => stage.bind(this) );
-    
-    async.waterfall(stages, (err, container) => {
-      if (err) {
-        console.error(err);
-        return this._cleanupContainer(container, _.partial(cb, err));
-      }
-      console.info("Container successfuly created")
-      cb(null, container)
-    })
-  }
-  
-    
+      
   /* 
    *  Cleanups various resources such as temporary
    *  files and docker containers
@@ -124,69 +105,6 @@ class Sandbox {
     })
   }
   
-  
-  /*
-   * Private method
-   * Initializes a new container
-   */
-  _initializeContainer (cb) {
-    const id = uuid()
-    const tmpDir = `${this.options.tmpDir}/${id}`
-    const containerSourceDir = `${__dirname}/container`  //TODO
-    const launchOptions = _.cloneDeep(this.containerLaunchOptions)
-    
-    async.waterfall([
-      _.partial(fs.mkdirp, this.options.tmpDir),
-      _.partial(fs.mkdir, tmpDir), 
-      _.partial(fs.copy, containerSourceDir, tmpDir), 
-      (next) => {
-        launchOptions.HostConfig.Binds = [`${tmpDir}:/usr/src/app`]
-        this.docker.createContainer(launchOptions, next)
-      }],
-      
-      (err, instance) => {
-        if (err) return cb(err)
-        const container = new Container(id, instance, tmpDir)
-        cb(null, container)
-      }
-    )
-  }
-  
-  /* 
-   * Private method
-   * Starts the specified container
-   */
-  _startContainer(container, cb) {
-    container.instance.start( (err, data) => {
-      if (err) {
-        return container.instance.stop(_.partial(cb, err))
-      }
-      cb(null, container)
-    })
-  }
-   
- /*
-  * Private method
-  * Retrieves info of a container
-  */
-  _getContainerInfo(container, cb) {
-    container.instance.inspect( (err, data) => {
-      if (err) {
-        return container.instance.stop(_.partial(cb, err))
-      }
-      container.setIp(data.NetworkSettings.IPAddress)
-      cb(null, container)
-    })
-  }
-    
-  /* 
-   * Private method
-   * Registers a container into the pool
-   */
-  _registerContainer(container, cb) {
-     this.manager.registerContainer(container)
-     cb(null, container)
-  }
 }
 
 module.exports = Sandbox

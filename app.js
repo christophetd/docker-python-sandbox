@@ -3,14 +3,16 @@
 let Sandbox = require('./Sandbox')
 
 let sandbox = new Sandbox({
-  "poolSize": 1
+  "poolSize": 2, 
+  "enableNetwork": true
 })
 
 sandbox.createPool(() => {
+  console.log("Pool ready")
   sandbox.run("print 'hello world'", (err, result) => {
-    if (err) console.error("ERROR", err)
-    else console.log("Result", result)
   })
 })
 
+// TODO
+// Being able to disable network without error
 
