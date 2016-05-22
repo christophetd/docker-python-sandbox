@@ -6,7 +6,8 @@ let Container   = require('./Container')
 let PoolManager = require('./PoolManager')
 let Job         = require('./Job')
 let fs          = require('fs-extra')
-var Docker      = require('dockerode');
+let log         = require('winston')
+var Docker      = require('dockerode')
 
 const defaultOptions = {
   "poolSize": 1,
@@ -17,7 +18,6 @@ const defaultOptions = {
 };
 
 const noop = () => {}
-const log = {}    
 
 /*
  * To do: 
@@ -62,8 +62,11 @@ class Sandbox {
       this.docker  = new Docker()
       this.manager = new PoolManager(this.docker, options)
       
-      process.on('exit', this.cleanup.bind(this, process.exit));
-      process.on('SIGINT', this.cleanup.bind(this, process.exit));
+      const cleanupEvents = ['beforeExit', 'SIGINT']
+      const cleanupFn = this.cleanup.bind(this)
+      cleanupEvents.map(event => {
+        process.on(event, cleanupFn)
+      });
       
   }
   
@@ -96,11 +99,9 @@ class Sandbox {
    *  files and docker containers
    */
   cleanup(cb) {
+    log.debug("cleaning up")
     cb = cb || _.noop
-    console.log("cleaning up")
     this.manager.cleanup( err => {
-      if (err) console.error("Error while cleaning up ", err);
-      else console.info("Cleanup OK")
       cb(err)
     })
   }

@@ -5,7 +5,10 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --harmony_destructuring app.js"
+    "start": "node --harmony_destructuring app.js",
+    "clean": "docker stop $(docker ps -q) && rm -rf tmp",
+    "cleanAndRun": "docker stop $(docker ps -q) && rm -rf tmp && node --harmony_destructuring app.js",
+    "debug": "node --harmony_destructuring debug app.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +26,7 @@
     "fs-extra": "^0.26.7",
     "lodash": "^4.8.2",
     "node-uuid": "^1.4.7",
-    "request": "^2.70.0"
+    "request": "^2.70.0",
+    "winston": "^2.2.0"
   }
 }

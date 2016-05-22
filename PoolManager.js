@@ -5,6 +5,7 @@ let _               = require('lodash')
 let async           = require('async')
 let uuid            = require('node-uuid').v4
 let fs              = require('fs-extra')
+let log             = require('winston')
 let Container       = require('./Container')
 
 class PoolManager {
@@ -29,8 +30,7 @@ class PoolManager {
       throw new Error("invalid pool size")
       
     let startups = _.range(size).map(() => this._createContainer.bind(this));
-    //startups.push((next) => _.delay(next, this.initialDelayMs));
-    
+    log.debug("Creating the container pool", {size: size})
     async.parallel(startups, cb)
   }
   
@@ -40,6 +40,7 @@ class PoolManager {
   executeJob (job, cb) {
     cb = cb || _.noop
     if (_.isEmpty(this.availableContainers)) {
+      log.debug("[pool] No container available, adding a new job to the queue")
       this.waitingJobs.push(job)
     }
     else {
@@ -57,32 +58,35 @@ class PoolManager {
       throw new Error("no containers available, but there should have been!")
     
     const container = this.availableContainers.shift()
-
+    log.debug("[pool] Executing a new job", {'container-id': container.id})
     const retryOptions = {
       times: 10, 
       interval: 500
     }
+    log.debug("Job ", {value: job})
     /*
      * 1) Execute job
      * 2) Cleanup container
      * 3) Create a new container and add it to the pool
      */
     async.waterfall([
-      async.retryable(retryOptions, container.executeJob.bind(container, job)),
+      async.retryable(retryOptions, (next) => container.executeJob(job, next)),
       
       /*
        * The code execution is over. We call the user callback BEFORE
        * cleaning up and replacing the container with a fresh one.
        */
       (result, next) => {
+        log.debug('[pool] code execution done')
         cb(null, result)
-        container.cleanup.bind(() => next(null))
+        container.cleanup((err) => next(err))
       },
       
       /*
        * We replace the container with a fresh one
        */
       (next) => {
+        log.debug('[pool] replacing the container by a new one')
         this._createContainer(next)
       }
     ],
@@ -92,7 +96,10 @@ class PoolManager {
      * It may already have been cleaned, but this does not matter.
      */
     (err) => {
+      log.debug('[pool] container successfuly replaced by a new one')
+      err && log.debug("[PoolManager.executeJob] "+err)
       container.cleanup(_.noop)
+      cb(err)
     })
   }
 
@@ -102,8 +109,8 @@ class PoolManager {
   registerContainer(container) {
     this.availableContainers.push(container)
     if (!_.isEmpty(this.waitingJobs)) {
-      const {job, cb} = this.waitingJobs.shift() // ES6 destructuring powa
-      return this._executeJob(job, cb)
+      const waitingJobObject = this.waitingJobs.shift() 
+      process.nextTick(() => this._executeJob(waitingJobObject.job, waitingJobObject.cb))
     }
   }
   
@@ -114,14 +121,11 @@ class PoolManager {
    * 2) Clean up every container who was in there
    */
   cleanup(cb) {
+    log.debug("[pool] cleaning up all containers")
     cb = cb || _.noop
     const cleanups = this.availableContainers.map(c => c.cleanup.bind(c))
     this.availableContainers.length = 0
-    return async.parallel(cleanups, (err)=> { 
-      if (err) console.log("[PoolManager] Error while cleaning up -->", err)
-      else console.log("all cleanups done !!!!!"); 
-      cb(err)
-    })
+    return async.parallel(cleanups, cb)
   }
 
   
@@ -149,11 +153,11 @@ class PoolManager {
      * try to cleanup the container
      */
     async.waterfall(stages, (err, container) => {
-      err && console.error(err);
+      err && log.error(err);
       if (err && container) {
         return container.cleanup(_.partial(cb, err));
       }
-      console.info("Container successfuly created")
+      log.debug("Container successfuly created", {id: container.id})
       cb(null, container)
     })
   }
@@ -218,7 +222,7 @@ class PoolManager {
       if (err || !data || !data.NetworkSettings || !data.NetworkSettings.IPAddress 
           || data.NetworkSettings.IPAddress.length == 0) {
             
-        err = err || "unable to retrieve container IP"
+        err = err || new Error("unable to retrieve container IP")
         return container.cleanup(_.partial(cb, err))
       }
       container.setIp(data.NetworkSettings.IPAddress)

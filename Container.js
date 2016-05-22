@@ -4,6 +4,7 @@ let _       = require('lodash')
 let async   = require('async')
 let request = require('request')
 let fs      = require('fs-extra')
+let log     = require('winston')
 
 /*
  * A class representing a Docker container.
@@ -17,10 +18,6 @@ class Container {
     this.tmpDir = tmpDir
     this.ip = ""
     this.cleanedUp = false
-    
-    /* Todo : why is this needed?
-    this.instance.stop = this.instance.stop.bind(this.instance)
-    this.instance.remove = this.instance.remove.bind(this.instance)*/
   }
    
   /* 
@@ -36,12 +33,9 @@ class Container {
       timeout: 3000
     };
     
-    console.log(options.url)
-    
     request.post(options, (err, res) => {
-      if (err) return cb("unable to contact container: " + err)
-      if (!res.body) return cb("empty response from container")
-      console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"+res.body)
+      if (err) return cb(new Error("unable to contact container: " + err))
+      if (!res.body) return cb(new Error("empty response from container"))
       cb(null, res.body)
     })
   }
@@ -65,7 +59,6 @@ class Container {
       return async.nextTick(cb)
     }
     
-    console.log(`Container ${this.instance.id} cleaning up`)
     const stages = [
       /*
        * Remove the container's temporary directory
@@ -75,12 +68,12 @@ class Container {
       /*
        * Stop the container
        */
-      this.instance.stop,
+      this.instance.stop.bind(this.instance),
       
       /*
        * Remove the container
        */
-      async.apply(this.instance.remove, {force: true}),
+      this.instance.remove.bind(this.instance, {force: true}),
       
       /*
        * Mark the container as cleaned up
@@ -95,7 +88,6 @@ class Container {
   }
   
   _removeTmpDir(cb) {
-    console.log(`\tremoving tmp dir ${this.tmpDir}`)
     fs.remove(this.tmpDir, cb)
   }
 }
