@@ -31,7 +31,7 @@ class PoolManager {
       
     let startups = _.range(size).map(() => this._createContainer.bind(this));
     log.debug("Creating the container pool", {size: size})
-    async.parallel(startups, cb)
+    async.parallel(startups, (err, data) => cb(err))
   }
   
   /*
@@ -86,7 +86,7 @@ class PoolManager {
        */
       (next) => {
         log.debug('[pool] replacing the container by a new one')
-        this._createContainer(next)
+        process.nextTick(this._createContainer.bind(this, next));
       }
     ],
     
