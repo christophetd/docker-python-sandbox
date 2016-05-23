@@ -4,7 +4,7 @@
   "description": "A docker-based sandbox to execute code",
   "main": "app.js",
   "scripts": {
-    "test": "jasmine-node test",
+    "test": "jasmine-node --verbose --captureExceptions test",
     "start": "node app.js",
     "clean": "docker stop $(docker ps -q) && rm -rf tmp",
     "cleanAndRun": "docker stop $(docker ps -q) && rm -rf tmp && node --harmony_destructuring app.js",
