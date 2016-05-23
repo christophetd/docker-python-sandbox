@@ -19,7 +19,7 @@ describe("The sandbox class", () => {
 
   it("should not be any container from the library running in the beginning of the tests", done => {
     containerUtils.getRunningContainers( (err, containers) => {
-      if (err) return done.fail(err)
+      expect(err).toBe(null)
       expect(containers.length).toBe(0)
       done()
     })
@@ -38,7 +38,7 @@ describe("The sandbox class", () => {
         next()
       }
     ], err => {
-      if (err) return done.fail(err)
+      expect(err).toBe(null)
       done()
     })
   }, 60000)
@@ -56,7 +56,7 @@ describe("The sandbox class", () => {
         next()
       }
     ], (err) => {
-      if (err) return done.fail(err)
+      expect(err).toBe(null)
       done()
     })
   }, 60000)
