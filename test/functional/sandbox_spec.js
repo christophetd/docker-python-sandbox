@@ -4,7 +4,7 @@
 let Docker = require('dockerode')
 let containerUtils = require('./utils/containers')
 let async = require('async')
-let Sandbox = require('./../../Sandbox')
+let Sandbox = require('./../../src/Sandbox')
 
 describe("The sandbox class", () => {
   const docker = new Docker()

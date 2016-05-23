@@ -5,4 +5,4 @@ sudo: required
 services:
   - docker
 before_install:
-  - docker build -t docker_sandbox $TRAVIS_BUILD_DIR/container
+  - docker build -t docker_sandbox $TRAVIS_BUILD_DIR/src/container

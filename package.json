@@ -2,7 +2,7 @@
   "name": "docker-sandbox",
   "version": "0.0.1",
   "description": "A docker-based sandbox to execute code",
-  "main": "app.js",
+  "main": "./src/Sandbox",
   "scripts": {
     "test": "jasmine-node --verbose --captureExceptions test",
     "start": "node app.js",
