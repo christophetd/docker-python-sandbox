@@ -4,7 +4,7 @@
   "description": "A docker-based sandbox to execute code",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jasmine-node test",
     "start": "node --harmony_destructuring app.js",
     "clean": "docker stop $(docker ps -q) && rm -rf tmp",
     "cleanAndRun": "docker stop $(docker ps -q) && rm -rf tmp && node --harmony_destructuring app.js",
@@ -28,5 +28,8 @@
     "node-uuid": "^1.4.7",
     "request": "^2.70.0",
     "winston": "^2.2.0"
+  },
+  "devDependencies": {
+    "jasmine-node": "^1.14.5"
   }
 }
