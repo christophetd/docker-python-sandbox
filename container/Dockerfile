@@ -1,3 +1,6 @@
-FROM node:4-onbuild
+FROM node:argon
 
-# Nothing for now
+VOLUME ["/usr/src/app"]
+COPY start.sh /
+RUN chmod 755 /start.sh
+CMD ["/start.sh"]

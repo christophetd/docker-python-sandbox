@@ -40,7 +40,7 @@ class PoolManager {
   executeJob (job, cb) {
     cb = cb || _.noop
     if (_.isEmpty(this.availableContainers)) {
-      log.debug("[pool] No container available, adding a new job to the queue")
+      log.debug("[pool] No container available, adding a new job to the queue", {job})
       this.waitingJobs.push(job)
     }
     else {
@@ -58,12 +58,11 @@ class PoolManager {
       throw new Error("no containers available, but there should have been!")
     
     const container = this.availableContainers.shift()
-    log.debug("[pool] Executing a new job", {'container-id': container.id})
+    log.debug("[pool] Executing a new job", {'executor': container.id, job: job})
     const retryOptions = {
       times: 10, 
       interval: 500
     }
-    log.debug("Job ", {value: job})
     /*
      * 1) Execute job
      * 2) Cleanup container
@@ -109,8 +108,9 @@ class PoolManager {
   registerContainer(container) {
     this.availableContainers.push(container)
     if (!_.isEmpty(this.waitingJobs)) {
+      log.debug("[registerContainer] There are "+this.waitingJobs.length+" waiting job",{waitingJobs: this.waitingJobs})
       const waitingJobObject = this.waitingJobs.shift() 
-      process.nextTick(() => this._executeJob(waitingJobObject.job, waitingJobObject.cb))
+      this._executeJob(waitingJobObject, waitingJobObject.cb)
     }
   }
   
@@ -153,9 +153,12 @@ class PoolManager {
      * try to cleanup the container
      */
     async.waterfall(stages, (err, container) => {
-      err && log.error(err);
-      if (err && container) {
-        return container.cleanup(_.partial(cb, err));
+      if (err) {
+        log.error(err)
+        if (container) {
+          container.cleanup(_.partial(cb, err));
+        }
+        return;
       }
       log.debug("Container successfuly created", {id: container.id})
       cb(null, container)
@@ -188,7 +191,7 @@ class PoolManager {
        * Setup the shared directory
        */
       (next) => {
-        launchOptions.HostConfig.Binds = [`${tmpDir}:/usr/src/app`]
+        launchOptions.HostConfig.Binds = [`${tmpDir}/shared:/usr/src/app`]
         this.docker.createContainer(launchOptions, next)
       }],
       

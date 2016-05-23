@@ -1,16 +1,16 @@
 "use strict";
 
 let Sandbox = require('./Sandbox')
-var winston = require('winston');
-winston.level = 'debug';
+var log = require('winston');
+log.level = 'debug';
 
 let sandbox = new Sandbox({
-  "poolSize": 2, 
+  "poolSize": 1, 
   "enableNetwork": true
 })
 
 sandbox.createPool(() => {
-  const codes = [1, 2, 3].map(i => `print "Code ${i}"`)
+ const codes = [1, 2].map(i => `print "Code ${i}"`)
   console.log(codes)
   codes.forEach(code => {
     sandbox.run(code, (err, result) => console.log(err ? "[app.js] "+err : result))

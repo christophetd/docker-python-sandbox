@@ -13,7 +13,7 @@ const defaultOptions = {
   "poolSize": 1,
   "enableNetwork": false, 
   "memoryLimitMb": 50, 
-  "imageName": "python_sandbox", 
+  "imageName": "docker_sandbox",
   "tmpDir": __dirname + "/tmp"
 };
 
@@ -86,7 +86,7 @@ class Sandbox {
     if (!code || !_.isString(code))
       throw new Error("Please provide the code to run as a string or an object {code: xxx}")
       
-    const job = new Job(code)
+    const job = new Job(code, cb)
     this.manager.executeJob(job, (err, result) => {
       cb = _.partial(cb, err, result)
       cb()
