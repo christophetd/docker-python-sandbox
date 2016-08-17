@@ -96,7 +96,7 @@ class PoolManager {
      */
     (err) => {
       log.debug('[pool] container successfuly replaced by a new one')
-      err && log.debug("[PoolManager.executeJob] "+err)
+      err && log.debug("[PoolManager.executeJob] error: "+err)
       container.cleanup(_.noop)
       cb(err)
     })
@@ -110,7 +110,7 @@ class PoolManager {
     if (!_.isEmpty(this.waitingJobs)) {
       log.debug("[registerContainer] There are "+this.waitingJobs.length+" waiting job",{waitingJobs: this.waitingJobs})
       const waitingJobObject = this.waitingJobs.shift() 
-      this._executeJob(waitingJobObject, waitingJobObject.cb)
+      this._executeJob(waitingJobObject, _.noop) // waitingJobObject.cb)
     }
   }
   
