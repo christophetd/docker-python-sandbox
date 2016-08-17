@@ -87,10 +87,12 @@ class Sandbox {
       throw new Error("Please provide the code to run as a string or an object {code: xxx}")
       
     const job = new Job(code, cb)
-    this.manager.executeJob(job, (err, result) => {
-      cb = _.partial(cb, err, result)
-      cb()
-    })
+    this.manager.executeJob(job) /*, (err, result) => {
+      log.debug("");
+      //cb = _.partial(cb, err, result)
+      //cb()
+      cb(err, result);
+    })*/
   }
   
       

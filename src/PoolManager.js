@@ -40,7 +40,7 @@ class PoolManager {
   executeJob (job, cb) {
     cb = cb || _.noop
     if (_.isEmpty(this.availableContainers)) {
-      log.debug("[pool] No container available, adding a new job to the queue", {job})
+      log.debug("[pool] No container available, adding a new job to the queue")
       this.waitingJobs.push(job)
     }
     else {
@@ -58,7 +58,7 @@ class PoolManager {
       throw new Error("no containers available, but there should have been!")
     
     const container = this.availableContainers.shift()
-    log.debug("[pool] Executing a new job", {'executor': container.id, job: job})
+    log.debug("[pool] Executing a new job", {'executor': container.id })
     const retryOptions = {
       times: 10, 
       interval: 500
@@ -77,7 +77,7 @@ class PoolManager {
        */
       (result, next) => {
         log.debug('[pool] code execution done')
-        cb(null, result)
+        job.cb(null, result) // <- added job
         container.cleanup((err) => next(err))
       },
       
