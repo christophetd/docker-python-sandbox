@@ -28,20 +28,36 @@ class Container {
       url: "http://" + this.ip + ":3000/", 
       json: true, 
       body: {
-        code: job.code
+        code: job.code, 
+        timeoutMs: job.timeoutMs
       }, 
-      timeout: 3000
+      timeout: job.timeoutMs + 500
     };
     
     request.post(options, (err, res) => {
-      if (err) return cb(new Error("unable to contact container: " + err))
-      if (!res.body) return cb(new Error("empty response from container"))
+      if (err) {
+        if (err.code === "ETIMEDOUT") {
+          return cb(null, {
+            timedOut: true, 
+            isError: true, 
+            stderr: "", 
+            stdout: "", 
+            combined: ""
+          })
+        }
+        return cb(new Error("unable to contact container: " + err))
+      }
+      
+      if (!res || !res.body) 
+        return cb(new Error("empty response from container"))
       
       var result = {
-        isError: res.statusCode != 200, 
+        isError: res.body.isError,
+        timedOut: res.body.timedOut,
         stderr: res.body.stderr, 
         stdout:  res.body.stdout, 
-        combined: res.body.combined
+        combined: res.body.combined, 
+        killedByContainer: res.body.killedByContainer || false
       }
       
       cb(null, result)

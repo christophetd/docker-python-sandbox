@@ -3,9 +3,10 @@
 let _ = require('lodash')
 
 class Job {
-    constructor(code, cb) {
+    constructor(code, timeoutMs, cb) {
         this.code = code
         this.cb = cb || _.noop
+        this.timeoutMs = timeoutMs
     }
 }
 

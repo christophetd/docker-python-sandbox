@@ -14,7 +14,8 @@ const defaultOptions = {
   "enableNetwork": false, 
   "memoryLimitMb": 50, 
   "imageName": "docker_sandbox",
-  "tmpDir": __dirname + "/tmp"
+  "tmpDir": __dirname + "/tmp", 
+  "timeoutMs": 3000
 };
 
 const noop = () => {}
@@ -86,13 +87,8 @@ class Sandbox {
     if (!code || !_.isString(code))
       throw new Error("Please provide the code to run as a string or an object {code: xxx}")
       
-    const job = new Job(code, cb)
-    this.manager.executeJob(job) /*, (err, result) => {
-      log.debug("");
-      //cb = _.partial(cb, err, result)
-      //cb()
-      cb(err, result);
-    })*/
+    const job = new Job(code, this.options.timeoutMs, cb)
+    this.manager.executeJob(job)
   }
   
       
