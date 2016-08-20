@@ -77,7 +77,7 @@ class PoolManager {
        */
       (result, next) => {
         log.debug('[pool] code execution done')
-        job.cb(null, result) // <- added job
+        job.cb(null, result)
         container.cleanup((err) => next(err))
       },
       

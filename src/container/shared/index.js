@@ -18,18 +18,29 @@ app.post('/', function (req, res) {
   		// Write code to file
   		fs.writeFileSync('./code.py', req.body.code);
   		
-  		// Execute code
-  		child_process.exec('python ./code.py > output.txt 2>&1', function (err, stdout) {
-  			if (err) {
-  				res.status(500);
-  				res.end();
-  				return;
-  			}	
-  			res.status(200);
-  			res.end(fs.readFileSync('./output.txt'));
+  		var process = child_process.spawn("python", ["./code.py"], { cwd: __dirname })
+  		var output = {stdout: '', stderr: '', combined: ''};
+  		
+  		process.stdout.on('data', function (data) {
+  		    output.stdout += data;
+  		    output.combined += data;
+  		})
+  		
+  		process.stderr.on('data', function (data) {
+  		    output.stderr += data;
+  		    output.combined += data;
+  		})
+  		
+  		process.on('close', function (exitCode) {
+  		   res.status(exitCode == 0 ? 200 : 400);
+  		   
+  		   console.log(JSON.stringify(output));
+  		   
+  		   res.setHeader('Content-Type', 'application/json');
+  		   res.end(JSON.stringify(output));
+  		   process.exit(0);
   		});
   	}
-  	
 });
 
 app.listen(port, function () {

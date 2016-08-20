@@ -36,7 +36,15 @@ class Container {
     request.post(options, (err, res) => {
       if (err) return cb(new Error("unable to contact container: " + err))
       if (!res.body) return cb(new Error("empty response from container"))
-      cb(null, res.body)
+      
+      var result = {
+        isError: res.statusCode != 200, 
+        stderr: res.body.stderr, 
+        stdout:  res.body.stdout, 
+        combined: res.body.combined
+      }
+      
+      cb(null, result)
     })
   }
    
