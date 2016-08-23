@@ -12,6 +12,7 @@ class PoolManager {
   constructor(docker, options) {
     this.waitingJobs = []
     this.availableContainers = []
+    this.bootingContainers = []
     this.emitter = new EventEmitter()
     this.docker = docker
     this.options = options
@@ -106,6 +107,12 @@ class PoolManager {
    * Registers a container to the pool
    */
   registerContainer(container) {
+    // First, remove the container from the list of booting containers
+    var bootingContainerPos = this.bootingContainers.indexOf(container)
+    if (bootingContainerPos >= 0) {
+      this.bootingContainers.splice(bootingContainerPos, 1)
+    }
+    
     this.availableContainers.push(container)
     if (!_.isEmpty(this.waitingJobs)) {
       log.debug("[registerContainer] There are "+this.waitingJobs.length+" waiting job",{waitingJobs: this.waitingJobs})
@@ -123,9 +130,10 @@ class PoolManager {
   cleanup(cb) {
     log.debug("[pool] cleaning up all containers")
     cb = cb || _.noop
-    const cleanups = this.availableContainers.map(c => c.cleanup.bind(c))
+    const runningContainersCleanups = this.availableContainers.map(c => c.cleanup.bind(c))
+    const bootingContainersCleanups = this.bootingContainers.map(c => c.cleanup.bind(c))
     this.availableContainers.length = 0
-    return async.parallel(cleanups, cb)
+    return async.parallel(runningContainersCleanups.concat(bootingContainersCleanups), cb)
   }
 
   
@@ -155,7 +163,7 @@ class PoolManager {
     async.waterfall(stages, (err, container) => {
       if (err) {
         log.error(err)
-        if (container) {
+        if (container && container.cleanup) {
           container.cleanup(_.partial(cb, err));
         }
         return;
@@ -171,36 +179,14 @@ class PoolManager {
    * Initializes a new container
    */
   _initializeContainer (cb) {
-    const id = uuid()
-    const tmpDir = `${this.options.tmpDir}/${id}`
-    const containerSourceDir = `${__dirname}/container`  //TODO
-    const launchOptions = _.cloneDeep(this.options.containerLaunchOptions)
     
-    async.waterfall([
-      /*
-       * Create the temporary directory (and its parents if needed)
-       */
-      async.apply(fs.ensureDir, tmpDir),
-      
-      /*
-       * Copy the template files to the container's temporary directory
-       */
-      async.apply(fs.copy, containerSourceDir, tmpDir), 
-      
-      /*
-       * Setup the shared directory
-       */
-      (next) => {
-        launchOptions.HostConfig.Binds = [`${tmpDir}/shared:/usr/src/app`]
-        this.docker.createContainer(launchOptions, next)
-      }],
-      
-      (err, instance) => {
-        if (err) return cb(err)
-        const container = new Container(id, instance, tmpDir)
-        cb(null, container)
-      }
-    )
+    this.docker.createContainer(this.options.containerLaunchOptions, (err, instance) => {
+      if (err) return cb(err)
+      const container = new Container(uuid(), instance)
+      this.bootingContainers.push(container)
+      cb(null, container)
+    });
+    
   }
   
   /* 

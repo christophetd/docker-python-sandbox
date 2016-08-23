@@ -12,10 +12,9 @@ let log     = require('winston')
  * The "instance" field corresponds to a Dockerode container instance
  */
 class Container {
-  constructor(id, instance, tmpDir) {
+  constructor(id, instance) {
     this.id = id
     this.instance = instance
-    this.tmpDir = tmpDir
     this.ip = ""
     this.cleanedUp = false
   }
@@ -85,11 +84,6 @@ class Container {
     
     const stages = [
       /*
-       * Remove the container's temporary directory
-       */
-      (next) => this._removeTmpDir(next), 
-      
-      /*
        * Stop the container
        */
       this.instance.stop.bind(this.instance),
@@ -109,10 +103,6 @@ class Container {
     ];
     
     async.series(stages, cb)
-  }
-  
-  _removeTmpDir(cb) {
-    fs.remove(this.tmpDir, cb)
   }
 }
 
