@@ -44,6 +44,8 @@ class Sandbox {
         "AttachStdout": false,
         "AttachStderr": false,
         "OpenStdin": false, 
+        "Privileged": false,
+        "User": "sandboxuser",
         "Tty": false,
         "HostConfig": {
             "Memory": this.options.memoryLimitMb * 1000000, 
@@ -64,7 +66,7 @@ class Sandbox {
       this.manager = new PoolManager(this.docker, options)
       
       const cleanupEvents = ['beforeExit', 'SIGINT']
-      const cleanupFn = this.cleanup.bind(this)
+      const cleanupFn = this.cleanup.bind(this, true)
       cleanupEvents.map(event => {
         process.on(event, cleanupFn)
       });
@@ -98,9 +100,18 @@ class Sandbox {
    */
   cleanup(cb) {
     log.debug("cleaning up")
-    cb = cb || _.noop
+    
+    if (typeof cb === 'boolean') {
+      cb = null
+      var exit = true;
+    }
+    else {
+      cb = cb || _.noop
+    }
+    
     this.manager.cleanup( err => {
-      cb(err)
+      if (cb) return cb(err)
+      else if (exit) process.exit();
     })
   }
   
