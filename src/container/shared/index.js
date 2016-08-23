@@ -14,9 +14,9 @@ app.post('/', function (req, res) {
     
     res.setHeader('Content-Type', 'application/json');
     
-  	if (!req.body.code) {
+  	if (!req.body.code || !req.body.timeoutMs) {
         res.status(400);
-        res.end(JSON.stringify({error: "no code specified"}));
+        res.end(JSON.stringify({error: "no code or timeout specified"}));
   	}
   	else {
   	    res.status(200);
@@ -43,7 +43,7 @@ app.post('/', function (req, res) {
   		    job.kill('SIGKILL');
   		    var result = _.extend(output, { timedOut: true, isError: true, killedByContainer: true });
   		    res.end(JSON.stringify(result));
-  		}, req.body.timeoutMs || 5000)
+  		}, req.body.timeoutMs)
   		
   		job.on('close', function (exitCode) {
   		   var result = _.extend(output, { isError: exitCode != 0 })

@@ -11,11 +11,10 @@ var Docker      = require('dockerode')
 
 const defaultOptions = {
   "poolSize": 1,
-  "enableNetwork": false, 
+  "enableNetwork": true, 
   "memoryLimitMb": 50, 
   "imageName": "docker_sandbox",
-  "tmpDir": __dirname + "/tmp", 
-  "timeoutMs": 3000
+  "timeoutMs": 10000
 };
 
 const noop = () => {}
@@ -33,10 +32,6 @@ class Sandbox {
   constructor(options) {
       this.options = _.defaults(options, defaultOptions)
       
-      if (_(this.options.tmpDir).endsWith('/')) {
-        this.options.tmpDir = this.options.tmpDir.slice(0, -1)
-      }
-      
       this.options.containerLaunchOptions = {
         "Image": this.options.imageName,
         "NetworkDisabled": !this.options.enableNetwork, 
@@ -51,12 +46,20 @@ class Sandbox {
             "Memory": this.options.memoryLimitMb * 1000000, 
             "MemorySwap": -1,
             "Privileged": false, 
+            "CpusetCpus": "0", // only use one core
             "Ulimits": [{
                 "Name": "nproc", 
-                "Soft": 30, // TODO option
+                "Soft": 30, // max 30 opened files
                 "Hard": 30
+            }, {
+                "Name": "nofile", 
+                "Soft": 100, 
+                "Hard": 100
             }]
         }, 
+        "Labels": {
+          "__docker_sandbox": "1"
+        },
         ExposedPorts: {
           "3000/tcp": {}
         }

@@ -6,8 +6,6 @@ RUN ["chmod", "-R", "u+rwx", "/usr/src/app"]
 
 COPY ./shared /usr/src/app
 
-LABEL __docker_sandbox = 1
-
 COPY start.sh /
 RUN chmod 755 /start.sh
 

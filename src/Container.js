@@ -56,7 +56,7 @@ class Container {
         stderr: res.body.stderr, 
         stdout:  res.body.stdout, 
         combined: res.body.combined, 
-        killedByContainer: res.body.killedByContainer || false
+        killedByContainer: res.body.killedByContainer === true ? true : false
       }
       
       cb(null, result)
