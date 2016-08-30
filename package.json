@@ -1,8 +1,8 @@
 {
-  "name": "docker-sandbox",
-  "version": "0.0.1",
-  "description": "A docker-based sandbox to execute code",
-  "main": "./src/Sandbox",
+  "name": "docker-python-sandbox",
+  "version": "0.0.2",
+  "description": "A docker-based sandbox to execute untrusted python code code",
+  "main": "./lib/Sandbox",
   "scripts": {
     "test": "jasmine-node --verbose --captureExceptions test",
     "test-unit": "jasmine-node --verbose --captureExceptions test/unit",
