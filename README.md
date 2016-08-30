@@ -10,7 +10,13 @@ This section describes how to use the library from your NodeJS application.
 - Install the library: `npm install docker-python-sandbox`
 - Build the Docker image of the sandbox: `cd node_modules/docker-python-sandbox/container && sudo docker build -t docker_sandbox .`
 
-You should then be good to go.
+You can customize the Docker image before building it. For instance, if you'd like scipy to be available in the sandboxed environment, you can add the line
+
+```
+RUN apt-get install -y python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose
+```
+
+to the Dockerfile.
 
 ### Example usage
 
