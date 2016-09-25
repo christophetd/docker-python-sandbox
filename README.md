@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/christophetd/docker-python-sandbox-v2.svg?token=XndQsXByyZvxbqRRWyCC&branch=master)](https://travis-ci.com/christophetd/docker-python-sandbox-v2)
+
 # Docker Python sandbox
 
 As its name suggests, this library is a NodeJS sandbox for executing untrusted Python code in Docker containers.
