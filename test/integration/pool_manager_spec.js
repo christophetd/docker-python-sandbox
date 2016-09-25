@@ -4,19 +4,12 @@
 let Docker = require('dockerode')
 let containerUtils = require('./utils/containers')
 let async = require('async')
-let Sandbox = require('./../../src/Sandbox')
+let PoolManager = require('./../../lib/PoolManager')
 
-describe("The sandbox class", () => {
-  const docker = new Docker()
-  const poolSize = 2
-  const enableNetwork = false
-  const there = it
-  let sandbox = null
+describe("The PoolManager class", () => {
+  let docker = new Docker()
+  let pool = null
   
-  beforeEach(() => {
-    sandbox = new Sandbox({poolSize, enableNetwork})
-  })
-
   it("should not be any container from the library running in the beginning of the tests", done => {
     containerUtils.getRunningContainers( (err, containers) => {
       expect(err).toBe(null)
@@ -26,12 +19,11 @@ describe("The sandbox class", () => {
   })
   
   it("should create a pool of the correct size", done => {
-    const poolSize = 1
-    const enableNetwork = true
-    sandbox = new Sandbox({poolSize, enableNetwork})
+    const poolSize = 3
+    pool = new PoolManager(docker)
 
     async.waterfall([
-      next => sandbox.createPool(next), 
+      next => pool.initialize(poolSize, next), 
       containerUtils.getRunningContainers,
       (containers, next) => {
         expect(containers.length).toBe(poolSize)
@@ -41,15 +33,15 @@ describe("The sandbox class", () => {
       expect(err).toBe(null)
       done()
     })
-  }, 60000)
+  })
   
   it("should correctly cleanup containers", done => {
-    const poolSize = 1
+    const poolSize = 3
     const enableNetwork = true
-    sandbox = new Sandbox({poolSize, enableNetwork})
+    pool = new PoolManager(docker)
     async.waterfall([
-      next => sandbox.createPool(next),
-      next => sandbox.cleanup(next), 
+      next => pool.initialize(poolSize, next),
+      next => pool.cleanup(next), 
       next => containerUtils.getRunningContainers(next),
       (containers, next) => {
         expect(containers.length).toBe(0)
@@ -59,10 +51,28 @@ describe("The sandbox class", () => {
       expect(err).toBe(null)
       done()
     })
-  }, 60000)
+  })
+  
+  /*it("should correctly execute a basic python code", done => {
+    sandbox = new Sandbox({poolSize: 1})
+    async.waterfall([
+      next => sandbox.createPool(next), 
+      (err, next) => {
+        expect(err).toBeNull();
+        sandbox.run("print 'Hello world'", next)
+      },
+      (err, result, next) => {
+        expect(err).toBeNull()
+        expect(result).toBe("Hello world")
+        done();
+      }
+    ])
+  }, 15000)*/
   
   afterEach(done => {
-    sandbox.cleanup(done)
+    if (!pool) return done()
+    
+    pool.cleanup(done)
   })
 
 })

@@ -4,7 +4,7 @@
   "description": "A docker-based sandbox to execute untrusted python code code",
   "main": "./lib/Sandbox",
   "scripts": {
-    "test": "jasmine-node --verbose --captureExceptions test",
+    "test": "./scripts/run_tests.sh",
     "test-unit": "jasmine-node --verbose --captureExceptions test/unit",
     "start": "node app.js",
     "clean": "docker stop $(docker ps -q) && rm -rf tmp",
