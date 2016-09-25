@@ -93,7 +93,7 @@ Yes, yes, I know - you don't have the time nor the desire to implement it. That'
 
 The repository above also includes more specific security guidance (creating a separate user, enabling strict firewall rules, etc.). You can run this API on a separate server (e.g. a AWS instance), and then simply make the appropriate API calls from within your application.
 
-### Aknowledgments
+### Aknowledgments and thoughts
 
 #### 1) Docker is not the most secure way to run untrusted code
 
@@ -110,5 +110,14 @@ This means that the following is *not* implemented:
 
 - I/O limitations
 - Disk usage limitations
+- Network limitations
 
 However, I do believe that the risk is lowered by the fact that the code executed can only run for a finite amount of time (typically a few seconds), after which all the resources it has used are freed (including RAM, disk space, processes, opened files).
+
+#### 3) Some necessary protections are outside the scope of this library
+
+This may include (but depends on your use case):
+
+- limiting the network access / network usage. This should be implemented on the server level using a firewall, or disabling the outgoing network for all docker containers (search the web for that)
+
+- a AppArmor / SELinux profile for better resource limitations
