@@ -53,22 +53,6 @@ describe("The PoolManager class", () => {
     })
   })
   
-  /*it("should correctly execute a basic python code", done => {
-    sandbox = new Sandbox({poolSize: 1})
-    async.waterfall([
-      next => sandbox.createPool(next), 
-      (err, next) => {
-        expect(err).toBeNull();
-        sandbox.run("print 'Hello world'", next)
-      },
-      (err, result, next) => {
-        expect(err).toBeNull()
-        expect(result).toBe("Hello world")
-        done();
-      }
-    ])
-  }, 15000)*/
-  
   afterEach(done => {
     if (!pool) return done()
     
