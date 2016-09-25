@@ -48,7 +48,7 @@ mySandbox.initialize(err => {
 
 ### Methods of the Sandbox class
 
-### constructor
+#### constructor
 
 Accepts as a parameter an optional object with the following properties: 
 
@@ -62,7 +62,7 @@ This methods initializes the sandbox by creating the pool of Docker containers.
 
 *callback* is the callback to call when the initialization is completed
 
-#### run(param, callbac)
+#### run(param, callback)
 
 This methods runs a python program in the sandbox. **param** can be: 
 
