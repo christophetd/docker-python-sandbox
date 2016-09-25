@@ -81,6 +81,34 @@ This methods runs a python program in the sandbox. **param** can be:
    - *isError*: a boolean indicating if the program executed successfuly, meaning that its exit code was 0 and it didn't timeout
    - *timedOut*: a boolean indicating if the program timed out
 
-## IMPORTANT : about security
+## Security
 
-Please, please, do read this section before using blindly the library.
+**Please read this section before using blindly the library.** The following are my personal recommendations about what minimal security measures you should follow in order to use this library in a production environment.
+
+Don't run the code that uses this library on your main applications server. I strongly recommend that you keep this code on a separate server exposing an authenticated API, and having no access to any sensitive data.
+
+Yes, yes, I know - you don't have the time nor the desire to implement it. That's why I wrote one for you: 
+
+#### https://github.com/christophetd/code-execution-api-demo
+
+The repository above also includes more specific security guidance (creating a separate user, enabling strict firewall rules, etc.). You can run this API on a separate server (e.g. a AWS instance), and then simply make the appropriate API calls from within your application.
+
+### Aknowledgments
+
+#### 1) Docker is not the most secure way to run untrusted code
+
+The isolation provided by Docker is based on LXC containers, which is a feature of the Linux Kernel. Since the host machine and the containers running the untrusted code share the same kernel, security would be compromized if a vulnerability were to be found in the Linux Kernel. The most secure way to run untrusted code is to use traditional virtual machines, which use their own kernel. Unfortunately this is harder to implement efficiently because VMs use significantly more ressources than containers.
+
+#### 2) Resource limitation is hard and incompletely implemented
+
+Limiting resources used by docker containers is a pretty hard task, and this library only implements the basics: 
+
+- CPU usage is limited to a single core
+- Memory usage is limited by default to 50 Mo per container (this number can be changed when creating a new `Sandbox` object)
+
+This means that the following is *not* implemented: 
+
+- I/O limitations
+- Disk usage limitations
+
+However, I do believe that the risk is lowered by the fact that the code executed can only run for a finite amount of time (typically a few seconds), after which all the resources it has used are freed (including RAM, disk space, processes, opened files).
