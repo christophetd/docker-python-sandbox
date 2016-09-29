@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/christophetd/docker-python-sandbox-v2.svg?token=XndQsXByyZvxbqRRWyCC&branch=master)](https://travis-ci.com/christophetd/docker-python-sandbox-v2)
+[![Build Status](https://travis-ci.org/christophetd/docker-python-sandbox.svg)](https://travis-ci.org/christophetd/docker-python-sandbox)
 
 # Docker Python sandbox
 
