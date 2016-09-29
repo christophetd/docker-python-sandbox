@@ -125,11 +125,13 @@ Yes, yes, I know - you don't have the time nor the desire to implement it. That'
 
 The repository above also includes more specific security guidance (creating a separate user, enabling strict firewall rules, etc.). You can run this API on a separate server (e.g. a AWS instance), and then simply make the appropriate API calls from within your application.
 
-### Aknowledgments
+### Limitations
 
 Docker is not the most secure way to run untrusted code.
 
 The isolation provided by Docker is based on LXC containers, which is a feature of the Linux Kernel. Since the host machine and the containers running the untrusted code share the same kernel, security would be compromized if a vulnerability were to be found in the Linux Kernel. The most secure way to run untrusted code is to use traditional virtual machines, which use their own kernel. Unfortunately this is harder to implement efficiently because VMs use significantly more ressources than containers.
+
+**Yet**, a lot of heavely used websites use Docker containers to execute untrusted code. An example is [RemoteInterview](http://remoteinterview.io/).
 
 
 ## Known issues
@@ -146,4 +148,8 @@ If your installation uses `devicemapper`, I advise to configure it to use aufs i
 ## Author
 
 Any issue? Question? Concern? Feel free to open an issue to talk about it or to send me an email at *christophe at tafani dash dereeper dot me*
+
+Thank you to: 
+- Bassim Matar for initially having hired me to develop this project for [LiAssistant](https://liassistant.li) and allowing me to open-source it
+- Asad from RemoteInterview for some interesting discussions on the subject
 
