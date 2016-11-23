@@ -12,4 +12,6 @@ RUN chmod 755 /start.sh
 
 RUN apt-get update
 
+RUN pip install MySQL-python numpy scypi PIL panda nltk
+
 CMD ["/start.sh"]
