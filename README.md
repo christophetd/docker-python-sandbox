@@ -106,14 +106,13 @@ Why? Mainly because these are hard to limit correctly using Docker, and because 
 
 The fact that the untrusted programs only run for a limited amount of time (typically a few seconds) and that the resources it uses are freed afterwards also lowers the risk of abusive resource usage.
 
-What you should **not** do: 
-
-- run code using this library as root. If you run code using this library as root, kittens will die. To let a non-root user use Docker, simply add it to the `docker` group: 
+**Do not run code using this library as root**. If you run code using this library as root, kittens will die. To let a non-root user use Docker, simply add it to the `docker` group: 
 
 ```
 usermod -a -G docker your-user
 ```
-- ignore the section below if you are interested to use this library in production
+
+Please read carefully the section below if you are interested to use this library in production.
 
 ### Running it in production
 
