@@ -1,8 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var fs = require('fs');
-var child_process = require('child_process');
-var _ = require('underscore');
+var executor = require('./ExecutorService')
 
 var app = express();
 
@@ -14,43 +13,15 @@ app.post('/', function (req, res) {
     
     res.setHeader('Content-Type', 'application/json');
     
-  	if (!req.body.code || !req.body.timeoutMs) {
+  	if (!req.body.code || !req.body.timeoutMs || !req.body.language) {
         res.status(400);
-        res.end(JSON.stringify({error: "no code or timeout specified"}));
+        res.end(JSON.stringify({error: "no code, timeout or language specified"}));
   	}
   	else {
   	    res.status(200);
-    
-  		// Write code to file
-  		fs.writeFileSync('./code.py', req.body.code);
-  		
-  		var job = child_process.spawn("python", ["-u", "./code.py"], { cwd: __dirname })
-  		var output = {stdout: '', stderr: '', combined: ''};
-  		
-  		job.stdout.on('data', function (data) {
-  		    output.stdout += data;
-  		    output.combined += data;
-  		})
-  		
-  		job.stderr.on('data', function (data) {
-  		    output.stderr += data;
-  		    output.combined += data;
-  		})
-  	
-    	// Timeout logic
-  		var timeoutCheck = setTimeout(function () {
-  		    console.error("Process timed out. Killing")
-  		    job.kill('SIGKILL');
-  		    var result = _.extend(output, { timedOut: true, isError: true, killedByContainer: true });
-  		    res.end(JSON.stringify(result));
-  		}, req.body.timeoutMs)
-  		
-  		job.on('close', function (exitCode) {
-  		   var result = _.extend(output, { isError: exitCode != 0 })
-  		   res.end(JSON.stringify(result));
-  		   clearTimeout(timeoutCheck);
-  		});
-  	
+		executor.execute(req.body.code, req.body.language, req.body.timeoutMs, function(result) {
+			res.end(JSON.stringify(result));
+		});
   	}
 });
 
