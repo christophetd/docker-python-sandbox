@@ -10,7 +10,7 @@ As its name suggests, this library is a NodeJS sandbox for executing untrusted P
 
 This section describes how to use the library from your NodeJS application.
 
-- [](https://docs.docker.com/engine/installation/Install Docker)
+- [Install Docker](https://docs.docker.com/engine/installation/)
 - Install the library: `npm install --save docker-python-sandbox`
 - Pull the docker image used by the library: `docker pull christophetd/docker-sandbox`
 
