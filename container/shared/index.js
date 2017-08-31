@@ -24,7 +24,8 @@ app.post('/', function (req, res) {
   		// Write code to file
   		fs.writeFileSync('./code.py', req.body.code);
   		
-  		var job = child_process.spawn("python", ["-u", "./code.py"], { cwd: __dirname })
+		var executor = (req.body.v3 === true) ? "python3" : "python"
+  		var job = child_process.spawn(executor, ["-u", "./code.py"], { cwd: __dirname })
   		var output = {stdout: '', stderr: '', combined: ''};
   		
   		job.stdout.on('data', function (data) {

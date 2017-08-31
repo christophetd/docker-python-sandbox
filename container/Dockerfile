@@ -12,4 +12,7 @@ RUN chmod 755 /start.sh
 
 RUN apt-get update
 
+# Install python 3
+RUN apt-get install -y python3
+
 CMD ["/start.sh"]
