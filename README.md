@@ -57,6 +57,7 @@ Accepts as a parameter an optional object with the following properties:
 - *poolSize*: the number of containers to create (defaults to 1)
 - *timeoutMs*: the execution timeout (defaults to 10 seconds)
 - *memoryLimitMb*: the maximum memory allowed to be used by each containers (defaults to 50 Mo)
+- *v3*: boolean indicating if python3 should be used to run the code
 
 #### initialize(callback)
 
