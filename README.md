@@ -57,7 +57,6 @@ Accepts as a parameter an optional object with the following properties:
 - *poolSize*: the number of containers to create (defaults to 1)
 - *timeoutMs*: the execution timeout (defaults to 10 seconds)
 - *memoryLimitMb*: the maximum memory allowed to be used by each containers (defaults to 50 Mo)
-- *v3*: boolean indicating if python3 should be used to run the code
 
 #### initialize(callback)
 
@@ -73,6 +72,7 @@ This methods runs a python program in the sandbox. **param** can be:
 - an object with the following parameters
   - *code* : the code to be run
   - *timeoutMs* : the time after which the execution should be stopped  
+  - *v3*: boolean indicating if python3 should be used to run the code
 
 **callback** is the callback to be called once the execution is complete. It will be called with 2 parameters: 
 
