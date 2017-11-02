@@ -147,6 +147,8 @@ Storage Driver: aufs
 
 If your installation uses `devicemapper`, I advise to configure it to use aufs instead. See https://docs.docker.com/engine/userguide/storagedriver/aufs-driver/#/configure-docker-with-aufs
 
+It has also been reported that the library doesn't work properly on Mac for an unknown reason.
+
 ## Author
 
 Any issue? Question? Concern? Feel free to open an issue to talk about it or to send me an email at *christophe at tafani dash dereeper dot me*
