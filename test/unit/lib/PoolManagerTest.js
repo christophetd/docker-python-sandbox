@@ -365,4 +365,299 @@ describe('PoolManager', () => {
   })
 
 
+  describe('_createContainer', () => {
+    let cb, errStub, containerStub1, containerStub2, nextStub, cleanupStub
+    beforeEach(() => {
+      cb = sandbox.stub()
+      cleanupStub = sandbox.stub()
+      errStub = null
+      containerStub1 = sandbox.stub()
+      containerStub2 = { cleanup: cleanupStub }
+      nextStub = sandbox.stub()
+      poolManager.initialDelayMs = 111
+      poolManager._initializeContainer.bind = sandbox.stub()
+      poolManager._startContainer.bind = sandbox.stub()
+      poolManager._getContainerInfo.bind = sandbox.stub()
+      poolManager._registerContainer.bind = sandbox.stub()
+    })
+
+    afterEach(() => {
+
+    })
+
+    it('should call async.waterfall once', () => {
+      poolManager._createContainer(cb)
+      expect(mocks['async'].waterfall.callCount).to.be.equal(1)
+    })
+
+    it('should pass various bound functions to async.waterfall', () => {
+      poolManager._createContainer(cb)
+      expect(poolManager._initializeContainer.bind.callCount).to.be.equal(1)
+      expect(poolManager._startContainer.bind.callCount).to.be.equal(1)
+      expect(poolManager._getContainerInfo.bind.callCount).to.be.equal(1)
+      expect(poolManager._registerContainer.bind.callCount).to.be.equal(1)
+    })
+
+    it('should call pass callback with _.delay to async.waterfall, with expected args', () => {
+      poolManager._createContainer(cb)
+      mocks['async'].waterfall.args[0][0][3](containerStub1, nextStub) // calling the callback so that chai can test what it does
+      expect(mocks['lodash'].delay.callCount).to.be.equal(1)
+      expect(mocks['lodash'].delay.args[0][0]).to.be.equal(nextStub)
+      expect(mocks['lodash'].delay.args[0][1]).to.be.equal(poolManager.initialDelayMs)
+      expect(mocks['lodash'].delay.args[0][2]).to.be.equal(null)
+      expect(mocks['lodash'].delay.args[0][3]).to.be.equal(containerStub1)
+    })
+
+    it('should call expected functions if err is not null', () => {
+      errStub = 'not null'
+      poolManager._createContainer(cb)
+      mocks['async'].waterfall.args[0][1](errStub, containerStub2) // calling the callback so that chai can test what it does
+
+      expect(cleanupStub.callCount).to.be.equal(1)
+      expect(mocks['lodash'].partial.callCount).to.be.equal(1)
+      expect(mocks['lodash'].partial.args[0][0]).to.be.equal(cb)
+      expect(mocks['lodash'].partial.args[0][1]).to.be.equal(errStub)
+    })
+
+    it('should call cb once with expected args if no error', () => {
+      poolManager._createContainer(cb)
+      mocks['async'].waterfall.args[0][1](errStub, containerStub2) // calling the callback so that chai can test what it does
+      expect(cb.callCount).to.be.equal(1)
+      expect(cb.args[0][0]).to.be.equal(null)
+      expect(cb.args[0][1]).to.be.equal(containerStub2)
+    })
+
+
+  })
+
+
+  describe('_initializeContainer', () => {
+    let cb
+    beforeEach(() => {
+      cb = sandbox.stub()
+      poolManager.options = { containerLaunchOptions: { fake: 'options' } }
+      poolManager.bootingContainers = []
+      poolManager.docker = {
+        createContainer: sandbox.stub()
+      }
+
+    })
+
+    afterEach(() => {
+
+    })
+
+    it('should call this.docker.createContainer once', () => {
+      poolManager._initializeContainer(cb)
+      expect(poolManager.docker.createContainer.callCount).to.be.equal(1)
+    })
+
+    it('should pass expected containerLaunchOptions to this.docker.createContainer', () => {
+      poolManager._initializeContainer(cb)
+      expect(poolManager.docker.createContainer.args[0][0]).to.deep.equal(poolManager.options.containerLaunchOptions)
+    })
+
+    it('should pass a callback to this.docker.createContainer that returns a cb if error', () => {
+      let err = 'not null', instance = 'instance'
+      poolManager._initializeContainer(cb)
+      poolManager.docker.createContainer.args[0][1](err, instance)
+      expect(cb.callCount).to.be.equal(1)
+      expect(cb.args[0][0]).to.be.equal(err)
+    })
+
+    it('should pass a callback to this.docker.createContainer that constructs container if no error', () => {
+      let err = null, instance = 'instance'
+      poolManager._initializeContainer(cb)
+      poolManager.docker.createContainer.args[0][1](err, instance)
+      expect(mocks['./Container'].callCount).to.be.equal(1)
+      expect(mocks['uuid'].v4.callCount).to.be.equal(1)
+      expect(mocks['./Container'].args[0][1]).to.be.equal(instance)
+    })
+
+    it('should pass a callback to this.docker.createContainer that adds new container to bootingContainers', () => {
+      let err = null, instance = 'instance'
+      poolManager._initializeContainer(cb)
+      poolManager.docker.createContainer.args[0][1](err, instance)
+      expect(poolManager.bootingContainers.length).to.be.equal(1)
+    })
+
+    it('should pass a callback to this.docker.createContainer that returns a cb if no error', () => {
+      let err = null, instance = 'instance'
+      poolManager._initializeContainer(cb)
+      poolManager.docker.createContainer.args[0][1](err, instance)
+      expect(cb.callCount).to.be.equal(1)
+      expect(cb.args[0][0]).to.be.equal(null)
+      expect(cb.args[0][1]).to.deep.equal(new mocks['./Container']())
+    })
+
+  })
+
+
+  describe('_startContainer', () => {
+    let container, cb
+    beforeEach(() => {
+      container = {
+        instance: {
+          start: sandbox.stub()
+        },
+        cleanup: sandbox.stub()
+      }
+      cb = sandbox.stub()
+
+
+    })
+
+    afterEach(() => {
+
+    })
+
+    it('should call container.instance.start once', () => {
+      poolManager._startContainer(container, cb)
+      expect(container.instance.start.callCount).to.be.equal(1)
+    })
+
+    it('should pass a callback to container.instance.start that has expected behavior on err', () => {
+      let err = 'not null', data = null
+      poolManager._startContainer(container, cb)
+      container.instance.start.args[0][0](err, data)
+      expect(container.cleanup.callCount).to.be.equal(1)
+      expect(mocks['lodash'].partial.callCount).to.be.equal(1)
+      expect(mocks['lodash'].partial.args[0][0]).to.be.equal(cb)
+      expect(mocks['lodash'].partial.args[0][1]).to.be.equal(err)
+    })
+
+    it('should pass a callback to container.instance.start that has expected behavior if no err', () => {
+      let err = null, data = 'fake data'
+      poolManager._startContainer(container, cb)
+      container.instance.start.args[0][0](err, data)
+      expect(cb.callCount).to.be.equal(1)
+      expect(cb.args[0][0]).to.be.equal(null)
+      expect(cb.args[0][1]).to.deep.equal(container)
+    })
+
+  })
+
+
+  describe('_getContainerInfo', () => {
+    let container, cb, data
+    beforeEach(() => {
+      data = {
+        NetworkSettings: {
+          IPAddress: [ 'not0length' ]
+        }
+      }
+      container = {
+        instance: {
+          inspect: sandbox.stub()
+        }
+        , cleanup: sandbox.stub()
+        , setIp: sandbox.stub()
+      }
+      cb = sandbox.stub()
+
+
+    })
+
+    afterEach(() => {
+
+    })
+
+    it('should call container.instance.start once', () => {
+      poolManager._getContainerInfo(container, cb)
+      expect(container.instance.inspect.callCount).to.be.equal(1)
+    })
+
+    it('should pass a callback to container.instance.inspect that has expected behavior on err', () => {
+      let err = 'not null'
+      poolManager._getContainerInfo(container, cb)
+      container.instance.inspect.args[0][0](err, data)
+      expect(container.cleanup.callCount).to.be.equal(1)
+      expect(mocks['lodash'].partial.callCount).to.be.equal(1)
+      expect(mocks['lodash'].partial.args[0][0]).to.be.equal(cb)
+      expect(mocks['lodash'].partial.args[0][1]).to.be.equal(err)
+    })
+
+    it('should pass a callback that considers not having data to be an error', () => {
+      let err = null
+      poolManager._getContainerInfo(container, cb)
+      container.instance.inspect.args[0][0](err, null)
+      expect(container.cleanup.callCount).to.be.equal(1)
+    })
+
+    it('should pass a callback that considers not having data.NetworkSettings to be an error', () => {
+      let err = null
+      delete data.NetworkSettings
+      poolManager._getContainerInfo(container, cb)
+      container.instance.inspect.args[0][0](err, data)
+      expect(container.cleanup.callCount).to.be.equal(1)
+    })
+
+    it('should pass a callback that considers not having data.NetworkSettings.IPAddress to be an error', () => {
+      let err = null
+      delete data.NetworkSettings.IPAddress
+      poolManager._getContainerInfo(container, cb)
+      container.instance.inspect.args[0][0](err, data)
+      expect(container.cleanup.callCount).to.be.equal(1)
+    })
+
+    it('should pass a callback that considers data.NetworkSettings.IPAddress.length of 0 to be an error', () => {
+      let err = null
+      data.NetworkSettings.IPAddress = []
+      poolManager._getContainerInfo(container, cb)
+      container.instance.inspect.args[0][0](err, data)
+      expect(container.cleanup.callCount).to.be.equal(1)
+    })
+
+    it('should pass a callback to container.instance.inspect that has expected behavior if no err', () => {
+      let err = null
+      poolManager._getContainerInfo(container, cb)
+      container.instance.inspect.args[0][0](err, data)
+      expect(container.setIp.callCount).to.be.equal(1)
+      expect(cb.callCount).to.be.equal(1)
+      expect(cb.args[0][0]).to.be.equal(null)
+      expect(cb.args[0][1]).to.deep.equal(container)
+    })
+
+  })
+
+
+  describe('_registerContainer', () => {
+    let container, cb, data
+    beforeEach(() => {
+      data = {
+        NetworkSettings: {
+          IPAddress: [ 'not0length' ]
+        }
+      }
+      container = {
+        instance: {
+          inspect: sandbox.stub()
+        }
+        , cleanup: sandbox.stub()
+        , setIp: sandbox.stub()
+      }
+      cb = sandbox.stub()
+      poolManager.registerContainer = sandbox.stub()
+    })
+
+    afterEach(() => {
+
+    })
+
+    it('should call poolManager.registerContainer once with expected args', () => {
+      poolManager._registerContainer(container, cb)
+      expect(poolManager.registerContainer.callCount).to.be.equal(1)
+      expect(poolManager.registerContainer.args[0][0]).to.be.equal(container)
+    })
+
+    it('should pass a callback to container.instance.inspect that has expected behavior if no err', () => {
+      poolManager._registerContainer(container, cb)
+      expect(cb.callCount).to.be.equal(1)
+      expect(cb.args[0][0]).to.be.equal(null)
+      expect(cb.args[0][1]).to.deep.equal(container)
+    })
+
+  })
+
+
 })
