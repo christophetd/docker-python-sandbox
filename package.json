@@ -5,7 +5,7 @@
   "main": "./lib/Sandbox",
   "scripts": {
     "test": "./scripts/run_tests.sh",
-    "test-unit": "jasmine-node --verbose --captureExceptions test/unit",
+    "test-unit": "mocha test/unit/** --require babel-core/register",
     "start": "node app.js",
     "clean": "docker stop $(docker ps -q) && rm -rf tmp",
     "cleanAndRun": "docker stop $(docker ps -q) && rm -rf tmp && node --harmony_destructuring app.js",
@@ -23,10 +23,15 @@
   "homepage": "https://github.com/christophetd/docker-python-sandbox-v2#readme",
   "dependencies": {
     "async": "^2.0.0-rc.3",
+    "babel-core": "^6.26.0",
+    "chai": "^4.1.2",
     "dockerode": "^2.2.10",
     "fs-extra": "^0.26.7",
     "lodash": "^4.8.2",
+    "mocha": "^4.0.1",
+    "proxyquire": "^1.8.0",
     "request": "^2.70.0",
+    "sinon": "^4.1.2",
     "uuid": "^3.0.0",
     "winston": "^2.2.0"
   },
