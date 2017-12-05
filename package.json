@@ -1,7 +1,7 @@
 {
   "name": "docker-python-sandbox",
   "version": "0.0.7",
-  "description": "A docker-based sandbox to execute untrusted python code code",
+  "description": "A docker-based sandbox to execute untrusted python code",
   "main": "./lib/Sandbox",
   "scripts": {
     "test": "./scripts/run_tests.sh",
