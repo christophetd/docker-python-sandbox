@@ -4,9 +4,26 @@
 # In case one test crashes without cleaning up the containers, 
 # it does it after the tests have been run
 
-echo "Running tests"
-jasmine-node --verbose --captureExceptions test
-exit_code=$?
+integration_tests() {
+    echo "Running integration tests"
+    jasmine-node --verbose --captureExceptions test
+    exit_code=$?
+}
+
+unit_tests() {
+    echo "Running unit tests"
+    node_modules/.bin/mocha test/unit/** --require babel-core/register
+    exit_code=$?
+}
+
+exit_code=1
+for arg in "$@"; do
+    if [[ $arg == "unit" ]]; then
+        unit_tests
+    elif [[ $arg == "integration" ]]; then
+        integration_tests
+    fi
+done
 
 old_containers=$(docker ps -aq --filter label=__docker_sandbox)
 if [ ! -z "$old_containers" ]; then

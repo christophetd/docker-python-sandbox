@@ -4,8 +4,9 @@
   "description": "A docker-based sandbox to execute untrusted python code code",
   "main": "./lib/Sandbox",
   "scripts": {
-    "test": "./scripts/run_tests.sh",
-    "test-unit": "mocha test/unit/** --require babel-core/register",
+    "test": "./scripts/run_tests.sh unit integration",
+    "test-integration": "./scripts/run_tests.sh integration",
+    "test-unit": "./scripts/run_tests.sh unit",
     "start": "node app.js",
     "clean": "docker stop $(docker ps -q) && rm -rf tmp",
     "cleanAndRun": "docker stop $(docker ps -q) && rm -rf tmp && node --harmony_destructuring app.js",
