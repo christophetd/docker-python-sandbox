@@ -23,6 +23,10 @@ for arg in "$@"; do
     elif [[ $arg == "integration" ]]; then
         integration_tests
     fi
+
+    if [ $exit_code != 0 ]; then
+	echo "Tests failed"
+    fi
 done
 
 old_containers=$(docker ps -aq --filter label=__docker_sandbox)
