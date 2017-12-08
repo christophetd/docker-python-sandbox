@@ -28,8 +28,8 @@ describe("The Sandbox", () => {
       expect(result.timedOut).toBeFalsy()
       done()
     })
-  })
-
+  }, 15000);
+  
   it("should correctly compile a correct python 3 code", done => {
     sandbox.run({ v3: true, code: 'import sys; print("Hello world", file=sys.stdout)' }, (err, result) => {
       expect(err).toBe(null)
@@ -100,5 +100,6 @@ describe("The Sandbox", () => {
   afterEach(done => {
     if (!sandbox) return done()
     sandbox.cleanup(done)
-  })
+    done()
+  }, 15000)
 })

@@ -12,7 +12,7 @@ describe("The PoolManager class", () => {
   
   it("should not be any container from the library running in the beginning of the tests", done => {
     containerUtils.getRunningContainers( (err, containers) => {
-      expect(err).toBe(null)
+      expect(err).toBe(null);
       expect(containers.length).toBe(0)
       done()
     })
@@ -30,10 +30,10 @@ describe("The PoolManager class", () => {
         next()
       }
     ], err => {
-      expect(err).toBe(null)
+      expect(err).not.toBeDefined();
       done()
     })
-  })
+  }, 15000)
   
   it("should correctly cleanup containers", done => {
     const poolSize = 3
@@ -48,15 +48,15 @@ describe("The PoolManager class", () => {
         next()
       }
     ], (err) => {
-      expect(err).toBe(null)
+      expect(err).toBeFalsy();
       done()
     })
-  })
+  }, 15000)
   
   afterEach(done => {
     if (!pool) return done()
     
     pool.cleanup(done)
-  })
+  }, 15000)
 
 })
