@@ -26,6 +26,7 @@ for arg in "$@"; do
 
     if [ $exit_code != 0 ]; then
 	echo "Tests failed"
+	exit $exit_code
     fi
 done
 
