@@ -4,7 +4,7 @@
   "description": "A docker-based sandbox to execute untrusted python code",
   "main": "./lib/Sandbox",
   "scripts": {
-    "test": "npm run test-unit && npm run test-integration",
+    "test": "./scripts/run_tests.sh unit integration",
     "test-integration": "./scripts/run_tests.sh integration",
     "test-unit": "./scripts/run_tests.sh unit",
     "start": "node app.js",
