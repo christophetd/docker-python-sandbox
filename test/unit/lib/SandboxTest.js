@@ -35,8 +35,7 @@ describe('Sandbox', () => {
 
   describe('constructor', () => {
     beforeEach(() => {
-      ourSandbox.cleanup.bind = sandbox.stub()
-      process.on = sandbox.stub()
+
     })
 
     it('should set options as expected if some are passed', () => {
@@ -120,20 +119,6 @@ describe('Sandbox', () => {
       ourSandbox = new Sandbox(sandboxOptions)
       expect(mocks['./PoolManager'].callCount).to.deep.equal(2)
       expect(mocks['./PoolManager'].args[1][1]).to.deep.equal(sandboxOptions)
-    })
-
-    it('should call this.cleanup.bind once with expected args', () => {
-      ourSandbox = new Sandbox(sandboxOptions)
-      expect(ourSandbox.cleanup.bind.callCount).to.deep.equal(1)
-      expect(ourSandbox.cleanup.bind.args[0][0]).to.deep.equal(ourSandbox)
-      expect(ourSandbox.cleanup.bind.args[0][1]).to.deep.equal(true)
-    })
-
-    it('should call process.on twicewith expected args', () => {
-      ourSandbox = new Sandbox(sandboxOptions)
-      expect(process.on.callCount).to.deep.equal(2)
-      expect(process.on.args[0][0]).to.deep.equal('beforeExit')
-      expect(process.on.args[1][0]).to.deep.equal('SIGINT')
     })
 
   })
@@ -240,15 +225,6 @@ describe('Sandbox', () => {
     it('should call this.manager.cleanup', () => {
       ourSandbox.cleanup(cb)
       expect(ourSandbox.manager.cleanup.callCount).to.be.equal(1)
-    })
-
-    it('should call process.exit if cb is a bool', () => {
-      process.exit = sandbox.stub()
-      cb = true
-      ourSandbox.cleanup(cb)
-      expect(process.exit.callCount).to.be.equal(0)
-      ourSandbox.manager.cleanup.args[0][0](null)
-      expect(process.exit.callCount).to.be.equal(1)
     })
 
     it('should call cb if not a bool', () => {
