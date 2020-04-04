@@ -1,3 +1,7 @@
+# Deprecated
+
+**Note: this repository has been archived. Feel free to look at the code, fork it and use it in any way you like!**
+
 [![Build Status](https://travis-ci.org/christophetd/docker-python-sandbox.svg)](https://travis-ci.org/christophetd/docker-python-sandbox)
 
 # Docker Python sandbox
